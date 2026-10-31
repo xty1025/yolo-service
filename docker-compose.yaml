@@ -1,0 +1,11 @@
+services:
+  api:
+    build: .
+    image: fastapi-yolo
+    container_name: yolo-api
+    ports:
+      - "8001:8000"
+    environment:
+      - MODEL_PATH=/models/yolo26n.onnx
+    volumes:
+      - ./yolo26n.onnx:/models/yolo26n.onnx:ro
