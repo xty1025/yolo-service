@@ -93,6 +93,10 @@ yolo-service/
 └── yolo26n.onnx          # 模型文件（不入库）
 ```
 
+## 更多文档
+
+- [项目结构与运行流程](docs/ARCHITECTURE.md)
+
 ## 说明
 
 - 模型与 `.env` 均不纳入版本控制，通过挂载和环境变量注入
