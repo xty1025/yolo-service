@@ -15,7 +15,7 @@ def run_inference(data:bytes):
     except RuntimeError:
         raise HTTPException(status_code=503,detail="模型未就绪")
     with GPU_LIMIT:
-        result = model.predict(img,conf=0.25)
+        result = model.predict(img,conf=0.25,device='cpu')
     r=result[0]
     return img,r,model
 @router.post('/predict')

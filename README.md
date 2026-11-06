@@ -1,6 +1,6 @@
-# 医学影像目标检测推理服务
+# YOLO 目标检测模型服务化部署
 
-基于 YOLO + FastAPI 的目标检测服务：上传一张图片，返回检测结果 JSON 或画好框的可视化图像。
+基于 YOLO + FastAPI 的目标检测推理服务：上传一张图片，返回检测结果 JSON 或画好框的可视化图像。当前示例模型为 COCO，可通过 `MODEL_PATH` 替换为自研医学影像模型。
 服务已容器化，可通过 Docker 一键复现。
 
 ## 功能
@@ -10,7 +10,7 @@
 - `GET /health`：健康检查（200 正常 / 503 模型未就绪）
 - `GET /status`：服务启动时间
 - `GET /model-info`：当前模型信息
-- 推理走线程池 + `Semaphore` 限制并发，避免显存/CPU 争抢
+- 推理接口使用同步路由，由 FastAPI 放入线程池执行，并用 `Semaphore` 限制单进程并发，避免推理资源争抢
 - 日志按进程号落盘并自动轮转，支持优雅关闭时释放模型
 
 ## 技术栈
@@ -20,7 +20,7 @@
 | Web 框架 | FastAPI + Uvicorn |
 | 推理 | PyTorch / Ultralytics，ONNX Runtime |
 | 图像处理 | OpenCV |
-| 部署 | Docker、docker compose |
+| 部署 | Docker、Docker Compose |
 
 ## 快速开始
 
@@ -100,4 +100,4 @@ yolo-service/
 ## 说明
 
 - 模型与 `.env` 均不纳入版本控制，通过挂载和环境变量注入
-- 当前镜像为 CPU 版本；如需 GPU，可将 torch 源换成 `cu124` 并在启动时加 `--gpus all`
+- 当前仅提供 CPU 部署；GPU 版本需要额外替换 ONNX Runtime、修改推理设备配置，并准备 CUDA/cuDNN 环境，暂未包含

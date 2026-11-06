@@ -3,7 +3,7 @@
 ## 1. 项目定位
 
 一个把目标检测模型封装成 HTTP 服务的工程实践项目。
-输入一张图片，输出检测结果（JSON）或画框后的图片；整个服务可打包成 Docker 镜像交付。
+输入一张图片，输出检测结果（JSON）或画框后的图片；整个服务可打包成 Docker 镜像交付。当前示例模型为 COCO，可通过 `MODEL_PATH` 替换为自研医学影像模型；当前部署为 CPU 版本。
 
 ## 2. 目录结构
 
@@ -75,7 +75,7 @@ uvicorn main:app
   │                         │   ├─ np.frombuffer → uint8 数组
   │                         │   ├─ cv2.imdecode → BGR 图像（失败 → 400）
   │                         │   ├─ ml.get_model()（None → 503）
-  │                         │   └─ with GPU_LIMIT: model.predict(conf=0.25)
+  │                         │   └─ with GPU_LIMIT: model.predict(conf=0.25, device='cpu')
   │                         │ zip(boxes, conf, cls) → 结果列表
   │◄────────────────────────┤ {"count": 5, "detections": [...]}
 ```
@@ -97,7 +97,7 @@ ml.get_model()  ── 成功 ──► 200 {"status": "OK"}
                 └─ RuntimeError ──► 503 {"detail": "模型未就绪"}
 ```
 
-用于容器编排判断"服务是否真的可用"，而不是"进程是否还活着"。
+用于判断模型是否已加载，避免把模型未就绪的实例接入流量；不会实际执行推理。
 
 ### 5.4 其它接口
 
@@ -134,7 +134,7 @@ docker compose up -d --build
 |---|---|
 | 模型做成模块级单例 | 加载一次，全进程共享，避免重复占内存 |
 | 路由函数用 `def` 而非 `async def` | FastAPI 会把 `def` 放进线程池，阻塞的推理不会卡住事件循环 |
-| `Semaphore(2)` 限制并发 | 推理是 CPU/GPU 密集型，放太多并发只会互相拖慢、挤爆显存 |
+| `Semaphore(2)` 限制并发 | 推理是 CPU/GPU 密集型，放太多并发只会互相拖慢、争抢推理资源 |
 | 日志双出口 | 终端方便调试，文件用于事后排查；按 PID 分文件避免多进程互相覆盖 |
 | 模型走挂载而非打进镜像 | 换模型不必重建镜像，镜像也不因模型变大 |
 | `/health` 检查模型而非进程 | 进程活着但模型没加载，同样不能接客 |
@@ -149,4 +149,4 @@ docker compose up -d --build
 - 上传大小与类型校验
 - `pytest` + `TestClient` 覆盖主要路径
 - 增加前端上传页面
-- GPU 版本镜像与 TensorRT 加速
+- GPU 版本镜像：需要同时替换 `onnxruntime-gpu`、修改推理设备配置，并准备 CUDA/cuDNN 环境；后续可评估 TensorRT 加速
