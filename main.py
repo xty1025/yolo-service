@@ -53,10 +53,11 @@ def status():
 def model_info():
     model=ml.get_model()
     names = model.names
+    classes = [names[i] for i in sorted(names)] if isinstance(names, dict) else list(names)
     return {
         "model_path": str(ml.MODEL_PATH),
         "class_count": len(names),
-        "first_3_classes": [names[i] for i in range(3)],
+        "classes": classes,
     }
 @app.get("/health")
 def health():

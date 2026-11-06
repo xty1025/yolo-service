@@ -1,11 +1,10 @@
 from pathlib import Path
 from  ultralytics import YOLO
 import logging
-import torch
 import gc
 import os
 logger = logging.getLogger(__name__)
-MODEL_PATH = Path(os.getenv("MODEL_PATH", Path(__file__).parent / "yolo26n.onnx"))
+MODEL_PATH = Path(os.getenv("MODEL_PATH", Path(__file__).parent / "medical_best.onnx"))
 _model=None
 def load_model():
     global _model
@@ -19,16 +18,9 @@ def get_model():
         raise RuntimeError("模型没有加载好")
     return _model
 
-def mb(x):
-    return x / 2**20
 def unload_model():
     global _model
     logger.info(">>>释放模型")
-    logger.info(f"[前] allocated={mb(torch.cuda.memory_allocated()):.0f}MiB "
-                f"reserved={mb(torch.cuda.memory_reserved()):.0f}MiB")
     _model=None
     gc.collect()
-    logger.info(f"[后] allocated={mb(torch.cuda.memory_allocated()):.0f}MiB "
-                f"reserved={mb(torch.cuda.memory_reserved()):.0f}MiB")
-    torch.cuda.empty_cache()
-    logger.info(">>>显存已经归还")
+    logger.info(">>>模型引用已释放")

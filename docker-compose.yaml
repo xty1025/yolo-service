@@ -6,6 +6,6 @@ services:
     ports:
       - "8001:8000"
     environment:
-      - MODEL_PATH=/models/yolo26n.onnx
+      - MODEL_PATH=/models/medical_best.onnx
     volumes:
-      - ./yolo26n.onnx:/models/yolo26n.onnx:ro
+      - ./medical_best.onnx:/models/medical_best.onnx:ro

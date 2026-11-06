@@ -4,7 +4,7 @@ import cv2
 import ml
 import threading
 router = APIRouter()
-GPU_LIMIT=threading.Semaphore(2)
+INFER_SLOTS=threading.Semaphore(2)
 def run_inference(data:bytes):
     buf=np.frombuffer(data,np.uint8)
     img = cv2.imdecode(buf,cv2.IMREAD_COLOR)
@@ -14,8 +14,8 @@ def run_inference(data:bytes):
         model = ml.get_model()
     except RuntimeError:
         raise HTTPException(status_code=503,detail="模型未就绪")
-    with GPU_LIMIT:
-        result = model.predict(img,conf=0.25,device='cpu')
+    with INFER_SLOTS:
+        result = model.predict(img,conf=0.25,device='cpu',verbose=False)
     r=result[0]
     return img,r,model
 @router.post('/predict')
